@@ -27,7 +27,7 @@ FinanceFlow é uma aplicação web completa de gestão financeira pessoal e empr
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/SeuUsuario/FinanceFlow.git
+git clone https://github.com/dhruveduardo1270/finance_flow
 cd FinanceFlow
 ```
 
