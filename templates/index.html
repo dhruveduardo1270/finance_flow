@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header flex-between">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Resumo Financeiro - {{ 'Ano' if period == 'year' else 'Mês' }} Atual</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <div class="filters">
+            <a href="{{ url_for('dashboard.index', period='month') }}" class="btn {{ 'btn-primary' if period == 'month' else 'btn-outline' }} btn-sm">Este Mês</a>
+            <a href="{{ url_for('dashboard.index', period='year') }}" class="btn {{ 'btn-primary' if period == 'year' else 'btn-outline' }} btn-sm">Este Ano</a>
+        </div>
+        <a href="{{ url_for('dashboard.export_csv') }}" class="btn btn-outline btn-sm">Baixar Planilha</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger btn-sm">Sair</a>
+    </div>
+</header>
+
+<section class="summary-cards">
+    <div class="card income-card">
+        <h3>Receitas</h3>
+        <!-- O filtro | round(2) e outras formatações podem ser feitas aqui, 
+             mas para simplificar, usaremos o padrão e trataremos o visual no CSS -->
+        <p class="amount">R$ {{ "%.2f"|format(total_income) }}</p>
+    </div>
+    
+    <div class="card expense-card">
+        <h3>Despesas</h3>
+        <p class="amount">R$ {{ "%.2f"|format(total_expense) }}</p>
+    </div>
+    
+    <div class="card balance-card">
+        <h3>Saldo</h3>
+        <!-- Classe condicional baseada no saldo ser positivo ou negativo -->
+        <p class="amount {% if balance >= 0 %}positive{% else %}negative{% endif %}">
+            R$ {{ "%.2f"|format(balance) }}
+        </p>
+    </div>
+</section>
+
+<section class="dashboard-grid">
+    <div class="chart-container">
+        <h2>Despesas por Categoria</h2>
+        <!-- Wrapper necessário para o Chart.js não entrar em loop infinito de redimensionamento -->
+        <div class="canvas-wrapper">
+            <canvas id="expensesPieChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="recent-transactions">
+        <h2>Últimas Transações</h2>
+        {% if recent_transactions %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Data e Hora</th>
+                        <th>Descrição</th>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in recent_transactions %}
+                    <tr>
+                        <!-- Mostrando data e hora baseada no momento que foi lançado -->
+                        <td>{{ t.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ t.description }}</td>
+                        <td>
+                            <span class="category-badge" style="background-color: {{ t.category.color }};">
+                                {{ t.category.name }}
+                            </span>
+                        </td>
+                        <td class="{% if t.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                            {% if t.type == 'income' %}+{% else %}-{% endif %} R$ {{ "%.2f"|format(t.amount) }}
+                        </td>
+                        <td>
+                            <form action="{{ url_for('transactions.delete_transaction', id=t.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Excluir esta transação?')">X</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="empty-state">Nenhuma transação encontrada no momento.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const currentPeriod = "{{ period }}";
+</script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

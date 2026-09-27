@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceFlow - Controle Financeiro</title>
+    
+    <!-- Link para o arquivo CSS local -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Google Fonts para tipografia mais moderna -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Biblioteca Chart.js para os gráficos via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Sidebar / Navegação Lateral -->
+    <nav class="sidebar">
+        <div class="logo">
+            <h2>FinanceFlow</h2>
+        </div>
+        <ul class="nav-links">
+            <!-- url_for gera as URLs com base no nome da função no Python -->
+            <li><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('transactions.list_transactions') }}">Transações</a></li>
+            <li><a href="{{ url_for('transactions.add_transaction') }}">Novo Lançamento</a></li>
+        </ul>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+        <!-- Bloco que será substituído nos arquivos filhos -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Scripts da aplicação -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- Bloco opcional para scripts específicos da página -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

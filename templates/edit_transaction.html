@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header">
+    <h1>Editar Lançamento</h1>
+    <p>Atualize os dados desta receita ou despesa.</p>
+</header>
+
+<div class="card form-card">
+    <form action="{{ url_for('transactions.edit_transaction', id=transaction.id) }}" method="POST" id="transactionForm">
+        
+        <div class="form-group">
+            <label>Tipo de Lançamento</label>
+            <div class="radio-group">
+                <label class="radio-btn">
+                    <input type="radio" name="type" value="expense" id="typeExpense" {% if transaction.type == 'expense' %}checked{% endif %}>
+                    <span>Despesa</span>
+                </label>
+                <label class="radio-btn">
+                    <input type="radio" name="type" value="income" id="typeIncome" {% if transaction.type == 'income' %}checked{% endif %}>
+                    <span>Receita</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group half-width">
+                <label for="amount">Valor (R$)</label>
+                <input type="number" id="amount" name="amount" step="0.01" min="0.01" required placeholder="0,00" value="{{ '%.2f'|format(transaction.amount) }}">
+            </div>
+
+            <div class="form-group half-width">
+                <label for="date">Data</label>
+                <input type="date" id="date" name="date" required value="{{ transaction.date.strftime('%Y-%m-%d') }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Descrição</label>
+            <input type="text" id="description" name="description" required placeholder="Ex: Conta de Luz, Salário, etc." value="{{ transaction.description }}">
+        </div>
+
+        <div class="form-group">
+            <label for="category_id">Categoria</label>
+            <select id="category_id" name="category_id" required>
+                <option value="">Selecione uma categoria...</option>
+                <!-- O JS preencherá com as categorias, mas vamos definir a atual dinamicamente -->
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Observações (opcional)</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Detalhes adicionais...">{{ transaction.notes if transaction.notes else '' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('transactions.list_transactions') }}" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Obter os valores atuais da transação
+        const currentType = "{{ transaction.type }}";
+        const currentCategoryId = "{{ transaction.category_id }}";
+        
+        const typeRadios = document.querySelectorAll('input[name="type"]');
+        const categorySelect = document.getElementById('category_id');
+        
+        function updateCategories(type, selectedId = null) {
+            fetch(`/api/categories?type=${type}`)
+                .then(response => response.json())
+                .then(categories => {
+                    categorySelect.innerHTML = '<option value="">Selecione uma categoria...</option>';
+                    
+                    categories.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.name;
+                        // Se a categoria iterada for a da transação, selecioná-la
+                        if (selectedId && cat.id == selectedId) {
+                            option.selected = true;
+                        }
+                        categorySelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Erro ao buscar categorias:', error));
+        }
+        
+        // Atualiza as categorias na carga inicial da página com base no tipo atual
+        updateCategories(currentType, currentCategoryId);
+        
+        // Adiciona evento de mudança aos botões de rádio (despesa/receita)
+        typeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                // Quando o usuário muda o tipo na edição, limpa a categoria selecionada
+                updateCategories(e.target.value);
+            });
+        });
+    });
+</script>
+{% endblock %}

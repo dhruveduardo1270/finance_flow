@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header flex-between">
+    <div>
+        <h1>Transações</h1>
+        <p>Histórico completo de lançamentos</p>
+    </div>
+    <a href="{{ url_for('transactions.add_transaction') }}" class="btn btn-primary">Novo Lançamento</a>
+</header>
+
+<!-- Filtros simples por tipo -->
+<div class="filters">
+    <a href="{{ url_for('transactions.list_transactions') }}" class="btn btn-outline">Todas</a>
+    <a href="{{ url_for('transactions.list_transactions', type='income') }}" class="btn btn-outline text-success">Receitas</a>
+    <a href="{{ url_for('transactions.list_transactions', type='expense') }}" class="btn btn-outline text-danger">Despesas</a>
+</div>
+
+<div class="card table-card">
+    {% if transactions %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td>{{ t.date.strftime('%d/%m/%Y') }}</td>
+                <td>
+                    {{ t.description }}
+                    {% if t.notes %}
+                        <small class="text-muted d-block">{{ t.notes }}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="category-badge" style="background-color: {{ t.category.color }};">
+                        {{ t.category.name }}
+                    </span>
+                </td>
+                <td>
+                    {% if t.type == 'income' %}
+                        <span class="badge badge-success">Receita</span>
+                    {% else %}
+                        <span class="badge badge-danger">Despesa</span>
+                    {% endif %}
+                </td>
+                <td class="{% if t.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                    {% if t.type == 'income' %}+{% else %}-{% endif %} R$ {{ "%.2f"|format(t.amount) }}
+                </td>
+                <td style="display: flex; gap: 5px;">
+                    <a href="{{ url_for('transactions.edit_transaction', id=t.id) }}" class="btn btn-outline btn-sm">Editar</a>
+                    <!-- Formulário para exclusão segura -->
+                    <form action="{{ url_for('transactions.delete_transaction', id=t.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta transação?')">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>Você não tem nenhuma transação registrada ainda.</p>
+        <a href="{{ url_for('transactions.add_transaction') }}" class="btn btn-primary">Adicionar Primeira Transação</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
